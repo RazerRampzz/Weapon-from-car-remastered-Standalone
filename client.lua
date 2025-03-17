@@ -50,23 +50,37 @@ Citizen.CreateThread(function()
         local playerPed = GetPlayerPed(-1)
         if playerPed then
             local weapon = GetSelectedPedWeapon(playerPed, true)
-            if currWeapon ~= weapon and not slungWeapon then
+            
+            -- Prevent using slung weapon until unslung
+            if slungWeapon and weapon == slungWeapon then
+                drawNotification("~p~[DCRP V3]~c~ You must unsling your weapon first.")
+                SetCurrentPedWeapon(playerPed, GetHashKey("WEAPON_UNARMED"), true)
+            end
+            
+            if currWeapon ~= weapon then
                 if isWeaponSMG(weapon) then
-                    local vehicle = VehicleInFront()
-                    if GetVehiclePedIsIn(playerPed, false) == 0 and DoesEntityExist(vehicle) and IsEntityAVehicle(vehicle) then
-                        currWeapon = weapon
-                        SetVehicleDoorOpen(vehicle, 5, false, false)
-                        Citizen.Wait(2000)
-                        SetVehicleDoorShut(vehicle, 5, false)
+                    if slungWeapon and weapon == slungWeapon then
+                        drawNotification("~p~[DCRP V3]~c~ You must unsling your weapon first.")
+                        SetCurrentPedWeapon(playerPed, GetHashKey("WEAPON_UNARMED"), true)
                     else
-                        if not hasDuffleBag(playerPed) then
-                            Wait(1)
-                            drawNotification("~p~[DCRP V3]~c~ " .. dbtxterr)
-                            SetCurrentPedWeapon(playerPed, -1569615261, true)
-                        else
+                        local vehicle = VehicleInFront()
+                        if GetVehiclePedIsIn(playerPed, false) == 0 and DoesEntityExist(vehicle) and IsEntityAVehicle(vehicle) then
                             currWeapon = weapon
+                            SetVehicleDoorOpen(vehicle, 5, false, false)
+                            Citizen.Wait(2000)
+                            SetVehicleDoorShut(vehicle, 5, false)
+                        else
+                            if not hasDuffleBag(playerPed) then
+                                Wait(1)
+                                drawNotification("~p~[DCRP V3]~c~ " .. dbtxterr)
+                                SetCurrentPedWeapon(playerPed, -1569615261, true)
+                            else
+                                currWeapon = weapon
+                            end
                         end
                     end
+                else
+                    currWeapon = GetHashKey("WEAPON_UNARMED")
                 end
             end
         end
